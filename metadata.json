@@ -1,0 +1,6 @@
+{
+  "name": "ብርብር ቃለ ሕይወት - ኤዴን ቻፕል",
+  "description": "የብርብር ከተማ ቃለ ሕይወት ቤተክርስቲያን ኤዴን ቻፕል የአባላትና የመሪዎች አጠቃላይ መቆጣጠሪያ ዌብ አፕ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
