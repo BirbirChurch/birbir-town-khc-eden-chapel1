@@ -23,8 +23,9 @@ import { MemberFormModal } from '../common/MemberFormModal';
 import { HouseholdHierarchyCard } from '../common/HouseholdHierarchyCard';
 import { LeadershipForum } from '../discussion/LeadershipForum';
 import { FirebaseSyncBanner } from '../common/FirebaseSyncBanner';
+import { AnnualPlan2018Module } from '../coordinator/AnnualPlan2018Module';
 
-type LeaderTab = 'members' | 'groups' | 'reports' | 'plans' | 'feedback' | 'forum';
+type LeaderTab = 'members' | 'annualPlan2018' | 'groups' | 'reports' | 'plans' | 'feedback' | 'forum';
 
 export const LeadersDashboard: React.FC = () => {
   const { 
@@ -239,6 +240,18 @@ export const LeadersDashboard: React.FC = () => {
             }`}
           >
             የአባላት መረጃ ማረምና መቆጣጠር ({filteredMembers.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('annualPlan2018')}
+            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap shrink-0 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'annualPlan2018'
+                ? 'border-indigo-600 text-indigo-900 bg-indigo-50/60 shadow-xs'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>📋 የ2018 ዓ.ም ዕቅድና ሪፖርት (4 ሩብ ዓመት)</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">አዲስ</span>
           </button>
 
           <button
@@ -468,6 +481,11 @@ export const LeadersDashboard: React.FC = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* 2018 SPIRITUAL SECTOR ANNUAL & 4-QUARTER PLAN & REPORT MODULE */}
+      {activeTab === 'annualPlan2018' && (
+        <AnnualPlan2018Module />
       )}
 
       {/* TAB 2: DISCIPLESHIP GROUPS */}

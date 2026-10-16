@@ -31,8 +31,9 @@ import { exportMembersToExcel } from '../../utils/excelHelper';
 import { HouseholdHierarchyCard } from '../common/HouseholdHierarchyCard';
 import { LeadershipForum } from '../discussion/LeadershipForum';
 import { FirebaseSyncBanner } from '../common/FirebaseSyncBanner';
+import { AnnualPlan2018Module } from './AnnualPlan2018Module';
 
-type ActiveTab = 'members' | 'demographics' | 'plans' | 'reports' | 'feedback' | 'visitations' | 'leadership' | 'forum';
+type ActiveTab = 'members' | 'annualPlan2018' | 'demographics' | 'plans' | 'reports' | 'feedback' | 'visitations' | 'leadership' | 'forum';
 
 export const CoordinatorDashboard: React.FC = () => {
   const { 
@@ -386,6 +387,18 @@ export const CoordinatorDashboard: React.FC = () => {
             }`}
           >
             ሙሉ የአባላት ዝርዝር ({members.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('annualPlan2018')}
+            className={`px-4 py-2.5 text-xs font-bold whitespace-nowrap shrink-0 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'annualPlan2018'
+                ? 'border-indigo-600 text-indigo-900 bg-indigo-50/60 shadow-xs'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            <span>📋 የ2018 ዓ.ም ዕቅድና ሪፖርት (4 ሩብ ዓመት)</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black">አዲስ</span>
           </button>
 
           <button
@@ -887,6 +900,11 @@ export const CoordinatorDashboard: React.FC = () => {
             )}
           </div>
         )}
+
+      {/* 2018 SPIRITUAL SECTOR ANNUAL & 4-QUARTER PLAN & REPORT MODULE */}
+      {activeTab === 'annualPlan2018' && (
+        <AnnualPlan2018Module />
+      )}
 
       {/* TAB 2: DEMOGRAPHICS (AGE BRACKETS 0-14, 15-29, 30-59, 60+ & EDUCATION) */}
       {activeTab === 'demographics' && (

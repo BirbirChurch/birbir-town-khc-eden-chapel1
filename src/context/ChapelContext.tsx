@@ -8,7 +8,10 @@ import {
   MemberFeedback, 
   VisitationRequest, 
   PortalType,
-  FamilyMember
+  FamilyMember,
+  AnnualPlanItem,
+  DailyCoordinatorLog,
+  QuarterlyGeneratedReport
 } from '../types/chapel';
 import { 
   INITIAL_MEMBERS, 
@@ -21,6 +24,11 @@ import {
   DEFAULT_PINS,
   calculateAgeGroup
 } from '../data/seedData';
+import {
+  INITIAL_ANNUAL_PLAN_2018,
+  INITIAL_DAILY_LOGS,
+  INITIAL_QUARTERLY_REPORTS
+} from '../data/annualPlan2018Data';
 
 interface ChapelContextType {
   members: Member[];
@@ -65,6 +73,20 @@ interface ChapelContextType {
   switchPortal: (portal: PortalType) => void;
   addFamilyMember: (memberId: string, family: Omit<FamilyMember, 'id'>) => void;
   removeFamilyMember: (memberId: string, familyId: string) => void;
+  // 2018 Spiritual Sector Annual Plan & Performance Suite
+  annualPlan2018: AnnualPlanItem[];
+  updateAnnualPlanItem: (id: string, updates: Partial<AnnualPlanItem>) => void;
+  addAnnualPlanItem: (item: Omit<AnnualPlanItem, 'id'>) => void;
+  deleteAnnualPlanItem: (id: string) => void;
+  splitAnnualTargetToQuarters: (id: string, annualTarget: number | string) => void;
+  dailyLogs: DailyCoordinatorLog[];
+  addDailyLog: (log: Omit<DailyCoordinatorLog, 'id' | 'createdAt'>) => void;
+  updateDailyLog: (id: string, updates: Partial<DailyCoordinatorLog>) => void;
+  deleteDailyLog: (id: string) => void;
+  quarterlyReports: QuarterlyGeneratedReport[];
+  saveQuarterlyReport: (report: QuarterlyGeneratedReport) => void;
+  updateQuarterlyReport: (id: string, updates: Partial<QuarterlyGeneratedReport>) => void;
+  deleteQuarterlyReport: (id: string) => void;
   resetAllData: () => void;
 }
 
@@ -79,7 +101,10 @@ const STORAGE_KEYS = {
   FEEDBACK: 'eden_chapel_feedback_v2',
   VISITATIONS: 'eden_chapel_visitations_v2',
   PINS: 'eden_chapel_pins_v2',
-  AUTH_SESSION: 'eden_chapel_auth_session_v2'
+  AUTH_SESSION: 'eden_chapel_auth_session_v2',
+  ANNUAL_PLAN_2018: 'eden_chapel_annual_plan_2018_v2',
+  DAILY_LOGS: 'eden_chapel_daily_logs_v2',
+  QUARTERLY_REPORTS: 'eden_chapel_quarterly_reports_v2'
 };
 
 export const ChapelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -149,6 +174,33 @@ export const ChapelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return saved ? JSON.parse(saved) : INITIAL_VISITATION_REQUESTS;
     } catch {
       return INITIAL_VISITATION_REQUESTS;
+    }
+  });
+
+  const [annualPlan2018, setAnnualPlan2018] = useState<AnnualPlanItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ANNUAL_PLAN_2018);
+      return saved ? JSON.parse(saved) : INITIAL_ANNUAL_PLAN_2018;
+    } catch {
+      return INITIAL_ANNUAL_PLAN_2018;
+    }
+  });
+
+  const [dailyLogs, setDailyLogs] = useState<DailyCoordinatorLog[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.DAILY_LOGS);
+      return saved ? JSON.parse(saved) : INITIAL_DAILY_LOGS;
+    } catch {
+      return INITIAL_DAILY_LOGS;
+    }
+  });
+
+  const [quarterlyReports, setQuarterlyReports] = useState<QuarterlyGeneratedReport[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.QUARTERLY_REPORTS);
+      return saved ? JSON.parse(saved) : INITIAL_QUARTERLY_REPORTS;
+    } catch {
+      return INITIAL_QUARTERLY_REPORTS;
     }
   });
 
@@ -266,6 +318,30 @@ export const ChapelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.warn('LocalStorage error', e);
     }
   }, [visitationRequests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ANNUAL_PLAN_2018, JSON.stringify(annualPlan2018));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  }, [annualPlan2018]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DAILY_LOGS, JSON.stringify(dailyLogs));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  }, [dailyLogs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.QUARTERLY_REPORTS, JSON.stringify(quarterlyReports));
+    } catch (e) {
+      console.warn('LocalStorage error', e);
+    }
+  }, [quarterlyReports]);
 
   const saveAuthSession = (role: PortalType, displayName: string) => {
     const newSession = {
@@ -565,6 +641,121 @@ export const ChapelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }));
   };
 
+  // 2018 Spiritual Sector Annual Plan Methods
+  const updateAnnualPlanItem = (id: string, updates: Partial<AnnualPlanItem>) => {
+    setAnnualPlan2018(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+  };
+
+  const addAnnualPlanItem = (item: Omit<AnnualPlanItem, 'id'>) => {
+    const newItem: AnnualPlanItem = {
+      ...item,
+      id: `plan-2018-${Date.now()}`
+    };
+    setAnnualPlan2018(prev => [...prev, newItem]);
+  };
+
+  const deleteAnnualPlanItem = (id: string) => {
+    setAnnualPlan2018(prev => prev.filter(item => item.id !== id));
+  };
+
+  const splitAnnualTargetToQuarters = (id: string, annualTarget: number | string) => {
+    setAnnualPlan2018(prev => prev.map(item => {
+      if (item.id !== id) return item;
+      const num = typeof annualTarget === 'number' ? annualTarget : parseFloat(String(annualTarget));
+      if (!isNaN(num) && num > 0) {
+        const qVal = Math.round((num / 4) * 10) / 10;
+        const halfVal = Math.round((num / 2) * 10) / 10;
+        return {
+          ...item,
+          annualTarget: num,
+          halfYearTarget: halfVal,
+          q1Target: qVal,
+          q2Target: qVal,
+          q3Target: qVal,
+          q4Target: qVal
+        };
+      } else if (String(annualTarget).includes('%')) {
+        return {
+          ...item,
+          annualTarget,
+          halfYearTarget: annualTarget,
+          q1Target: annualTarget,
+          q2Target: annualTarget,
+          q3Target: annualTarget,
+          q4Target: annualTarget
+        };
+      }
+      return {
+        ...item,
+        annualTarget
+      };
+    }));
+  };
+
+  // Daily Coordinator Log Methods
+  const addDailyLog = (log: Omit<DailyCoordinatorLog, 'id' | 'createdAt'>) => {
+    const newLog: DailyCoordinatorLog = {
+      ...log,
+      id: `log-${Date.now()}`,
+      createdAt: Date.now()
+    };
+    setDailyLogs(prev => [newLog, ...prev]);
+
+    // If linked to a plan item, update actual accomplishment in the corresponding quarter
+    if (log.planItemId && log.metricAccomplished) {
+      const metricNum = typeof log.metricAccomplished === 'number' ? log.metricAccomplished : parseFloat(String(log.metricAccomplished));
+      if (!isNaN(metricNum)) {
+        setAnnualPlan2018(prev => prev.map(item => {
+          if (item.id !== log.planItemId) return item;
+          const currentQ = log.quarter;
+          if (currentQ === '1ኛ') {
+            const currentActual = typeof item.q1Actual === 'number' ? item.q1Actual : parseFloat(String(item.q1Actual || 0)) || 0;
+            return { ...item, q1Actual: currentActual + metricNum };
+          } else if (currentQ === '2ኛ') {
+            const currentActual = typeof item.q2Actual === 'number' ? item.q2Actual : parseFloat(String(item.q2Actual || 0)) || 0;
+            return { ...item, q2Actual: currentActual + metricNum };
+          } else if (currentQ === '3ኛ') {
+            const currentActual = typeof item.q3Actual === 'number' ? item.q3Actual : parseFloat(String(item.q3Actual || 0)) || 0;
+            return { ...item, q3Actual: currentActual + metricNum };
+          } else if (currentQ === '4ኛ') {
+            const currentActual = typeof item.q4Actual === 'number' ? item.q4Actual : parseFloat(String(item.q4Actual || 0)) || 0;
+            return { ...item, q4Actual: currentActual + metricNum };
+          }
+          return item;
+        }));
+      }
+    }
+  };
+
+  const updateDailyLog = (id: string, updates: Partial<DailyCoordinatorLog>) => {
+    setDailyLogs(prev => prev.map(log => log.id === id ? { ...log, ...updates } : log));
+  };
+
+  const deleteDailyLog = (id: string) => {
+    setDailyLogs(prev => prev.filter(log => log.id !== id));
+  };
+
+  // Quarterly Generated Reports Methods
+  const saveQuarterlyReport = (report: QuarterlyGeneratedReport) => {
+    setQuarterlyReports(prev => {
+      const existingIdx = prev.findIndex(r => r.id === report.id || (r.quarter === report.quarter && r.year === report.year));
+      if (existingIdx >= 0) {
+        const copy = [...prev];
+        copy[existingIdx] = report;
+        return copy;
+      }
+      return [report, ...prev];
+    });
+  };
+
+  const updateQuarterlyReport = (id: string, updates: Partial<QuarterlyGeneratedReport>) => {
+    setQuarterlyReports(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const deleteQuarterlyReport = (id: string) => {
+    setQuarterlyReports(prev => prev.filter(r => r.id !== id));
+  };
+
   const resetAllData = () => {
     setMembers(INITIAL_MEMBERS);
     setCommittees(INITIAL_COMMITTEES);
@@ -573,6 +764,9 @@ export const ChapelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setReports(INITIAL_REPORTS);
     setFeedbackList(INITIAL_FEEDBACK);
     setVisitationRequests(INITIAL_VISITATION_REQUESTS);
+    setAnnualPlan2018(INITIAL_ANNUAL_PLAN_2018);
+    setDailyLogs(INITIAL_DAILY_LOGS);
+    setQuarterlyReports(INITIAL_QUARTERLY_REPORTS);
   };
 
   const currentMember = members.find(m => m.phone.replace(/\s+/g, '') === currentMemberPhone.replace(/\s+/g, '')) || members[0] || null;
@@ -622,6 +816,19 @@ export const ChapelProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         switchPortal,
         addFamilyMember,
         removeFamilyMember,
+        annualPlan2018,
+        updateAnnualPlanItem,
+        addAnnualPlanItem,
+        deleteAnnualPlanItem,
+        splitAnnualTargetToQuarters,
+        dailyLogs,
+        addDailyLog,
+        updateDailyLog,
+        deleteDailyLog,
+        quarterlyReports,
+        saveQuarterlyReport,
+        updateQuarterlyReport,
+        deleteQuarterlyReport,
         resetAllData
       }}
     >

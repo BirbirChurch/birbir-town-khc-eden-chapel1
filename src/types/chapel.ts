@@ -116,6 +116,69 @@ export interface ChapelPlan {
   updatedAt: string;
 }
 
+export interface AnnualPlanItem {
+  id: string;
+  code: string; // e.g. "1.1", "2.1", "3.2"
+  title: string;
+  categoryId: number; // 1 to 8
+  categoryName: string;
+  unit: string; // "በቁጥር", "በዙር", "በቡድን", "በፐረሰንት", etc.
+  annualTarget: number | string;
+  halfYearTarget?: number | string;
+  q1Target: number | string;
+  q2Target: number | string;
+  q3Target: number | string;
+  q4Target: number | string;
+  q1Actual?: number | string;
+  q2Actual?: number | string;
+  q3Actual?: number | string;
+  q4Actual?: number | string;
+  remarks?: string;
+  autoCalculated?: boolean;
+}
+
+export interface DailyCoordinatorLog {
+  id: string;
+  date: string;
+  month: string; // መስከረም፣ ጥቅምት፣ ወዘተ
+  quarter: '1ኛ' | '2ኛ' | '3ኛ' | '4ኛ';
+  taskTitle: string;
+  categoryId?: number;
+  categoryName?: string;
+  planItemId?: string;
+  planItemCode?: string;
+  metricAccomplished?: number | string;
+  unit?: string;
+  participantsOrLocation?: string;
+  isUnplanned: boolean; // ከታቀደው ውጪ የተሰራ ስራ
+  notes?: string;
+  createdAt: number;
+}
+
+export interface QuarterlyGeneratedReport {
+  id: string;
+  year: string;
+  quarter: '1ኛ ሩብ ዓመት' | '2ኛ ሩብ ዓመት' | '3ኛ ሩብ ዓመት' | '4ኛ ሩብ ዓመት';
+  preparedBy: string;
+  role: string;
+  date: string;
+  plannedTasks: {
+    code: string;
+    title: string;
+    unit: string;
+    planned: number | string;
+    accomplished: number | string;
+    percent: number;
+    remarks: string;
+  }[];
+  otherAccomplishments: string[]; // ሀ/ ሌሎች የተከናወኑ ተግባራት አገልግሎቶች
+  challenges: string[]; // ለ/ ያጋጠሙ ችግሮች
+  solutions: string[]; // ሐ/ የተወሰዱ የመፍትሔ እርምጃዎች
+  thanksgivings: string[]; // መ/ ምስጋና
+  prayerRequests: string[]; // ሠ/ ጸሎት
+  status: 'ረቂቅ' | 'የጸደቀ';
+}
+
 export interface ChapelReport {
   id: string;
   title: string;

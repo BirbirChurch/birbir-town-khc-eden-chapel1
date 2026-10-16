@@ -15,7 +15,14 @@ import {
   Firestore,
   writeBatch
 } from 'firebase/firestore';
-import { Member, LeadershipMessage, ChapelPlan, ChapelReport } from '../types/chapel';
+import { 
+  Member, 
+  LeadershipMessage, 
+  ChapelPlan, 
+  ChapelReport,
+  AnnualPlanItem,
+  DailyCoordinatorLog
+} from '../types/chapel';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyB9ziWa-dc59SSfESc0rEn6Le0__XdtRUE",
@@ -163,6 +170,44 @@ export async function fetchMembersFromFirestore(): Promise<{
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return { success: false, members: [], message: msg };
+  }
+}
+
+/**
+ * Syncs 2018 Annual Plan items to Firestore collection `eden_annual_plans`
+ */
+export async function syncAnnualPlansToFirestore(plans: AnnualPlanItem[]): Promise<{ success: boolean; message: string }> {
+  if (!db) return { success: false, message: 'Firestore offline' };
+  try {
+    const batch = writeBatch(db);
+    plans.forEach(p => {
+      const docRef = doc(db, 'eden_annual_plans', p.id);
+      batch.set(docRef, { ...p, syncedAt: serverTimestamp() }, { merge: true });
+    });
+    await batch.commit();
+    return { success: true, message: `${plans.length} የዕቅድ ዝርዝሮች ወደ Firebase ክላውድ ተመሳስለዋል` };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, message: msg };
+  }
+}
+
+/**
+ * Syncs Coordinator Daily Logs to Firestore collection `eden_daily_logs`
+ */
+export async function syncDailyLogsToFirestore(logs: DailyCoordinatorLog[]): Promise<{ success: boolean; message: string }> {
+  if (!db) return { success: false, message: 'Firestore offline' };
+  try {
+    const batch = writeBatch(db);
+    logs.forEach(l => {
+      const docRef = doc(db, 'eden_daily_logs', l.id);
+      batch.set(docRef, { ...l, syncedAt: serverTimestamp() }, { merge: true });
+    });
+    await batch.commit();
+    return { success: true, message: `${logs.length} ዕለታዊ የስራ መዝገቦች ወደ Firebase ክላውድ ተመሳስለዋል` };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { success: false, message: msg };
   }
 }
 
